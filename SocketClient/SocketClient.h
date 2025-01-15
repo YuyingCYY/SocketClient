@@ -17,6 +17,16 @@ extern "C" {
         char fileName[256];
     };
 
+    // 定義傳輸進度callback function
+    typedef void (*ProgressCallback)(int percentage);
+    typedef void (*ErrorCallback)(const char* error);
+
+    struct TransferCallbacks
+    {
+        ProgressCallback onProgress;
+        ErrorCallback onError;
+    };
+
     /// <summary>
     /// 初始化客戶端
     /// </summary>
@@ -31,6 +41,8 @@ extern "C" {
         const char* stationId,
         const char* operatorId
     );
+
+    SOCKETCLIENT_API void SetTransferCallbacks(TransferCallbacks callbacks);
 
     // 接收數據
     SOCKETCLIENT_API int ReceiveData(char* buffer, int bufferSize);
@@ -68,5 +80,10 @@ extern "C" {
     /// <param name="productSeries">產品系列</param>
     /// <param name="applicableProjects">適用專案</param>
     /// <returns>檔案資訊</returns>
-    SOCKETCLIENT_API FileInfo* GetBinFileInfo(const char* askId, const char* productSeries, const char* applicableProjects);
+    SOCKETCLIENT_API FileInfo* GetBinFileInfo(
+        const char* askId,
+        const char* productSeries,
+        const char* applicableProjects,
+        TransferCallbacks* callbacks // 可選
+    );
 }

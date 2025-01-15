@@ -22,6 +22,29 @@
 
 using json = nlohmann::json;
 
+namespace {
+	constexpr int RECV_TIMEOUT = 30000; // 30 seconds
+	constexpr int SEND_TIMEOUT = 30000; // 30 seconds
+	TransferCallbacks g_callbacks = { nullptr, nullptr };
+}
+
+// 設置超時
+bool SetSocketTimeouts(SOCKET socket) {
+	int timeout = RECV_TIMEOUT;
+	if (setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout)) != 0) {
+		return false;
+	}
+	timeout = SEND_TIMEOUT;
+	if (setsockopt(socket, SOL_SOCKET, SO_SNDTIMEO, (char*)&timeout, sizeof(timeout)) != 0) {
+		return false;
+	}
+	return true;
+}
+
+void SetTransferCallbacks(TransferCallbacks callbacks) {
+	g_callbacks = callbacks;
+}
+
 SOCKET ConnectSocket = INVALID_SOCKET;
 bool isInitialized = false;
 
@@ -59,6 +82,13 @@ bool InitializeClient(
 	for (ptr = result; ptr != NULL; ptr = ptr->ai_next) {
 		ConnectSocket = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
 		if (ConnectSocket == INVALID_SOCKET) {
+			WSACleanup();
+			return false;
+		}
+
+		// 設置 socket 超時
+		if (!SetSocketTimeouts(ConnectSocket)) {
+			closesocket(ConnectSocket);
 			WSACleanup();
 			return false;
 		}
@@ -173,7 +203,7 @@ void FreeFileInfo(FileInfo* fileInfo)
 	}
 }
 
-FileInfo* GetBinFileInfo(const char* askId, const char* productSeries, const char* applicableProjects)
+FileInfo* GetBinFileInfo(const char* askId, const char* productSeries, const char* applicableProjects, TransferCallbacks* callbacks)
 {
 	if (!isInitialized || ConnectSocket == INVALID_SOCKET) {
 		return nullptr;
