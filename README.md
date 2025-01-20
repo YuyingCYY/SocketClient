@@ -93,7 +93,7 @@ const char* applicableProjects = "Thai";
 FileInfo* fileInfo = GetBinFileInfo(askId, productSeries, applicableProjects);
 if (!fileInfo) {
     std::cerr << "Failed to get file info" << std::endl;
-    CloseConnection();'
+    CloseConnection();
     return 1;
 }
 
