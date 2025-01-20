@@ -67,8 +67,15 @@ extern "C" {
     /// <param name="askId">站點類型</param>
     /// <param name="productSeries">產品系列</param>
     /// <param name="applicableProjects">適用專案</param>
+    /// <param name="customizeId">客製化ID</param>
     /// <returns></returns>
-    SOCKETCLIENT_API int SendData(const char* askId, const char* productSeries, const char* applicableProjects, bool isGetFile);
+    SOCKETCLIENT_API int SendData(
+        const char* askId,
+        const char* productSeries,
+        const char* applicableProjects,
+        const char* customizeId,
+        bool isGetFile
+    );
 
     /// <summary>
     /// 獲取.bin檔案資訊
@@ -76,8 +83,14 @@ extern "C" {
     /// <param name="askId">站點類型</param>
     /// <param name="productSeries">產品系列</param>
     /// <param name="applicableProjects">適用專案</param>
+    /// <param name="customizeId">客製化ID</param>
     /// <returns>檔案資訊</returns>
-    SOCKETCLIENT_API FileInfo* GetBinFileInfo(const char* askId, const char* productSeries, const char* applicableProjects);
+    SOCKETCLIENT_API FileInfo* GetBinFileInfo(
+        const char* askId,
+        const char* productSeries,
+        const char* applicableProjects,
+        const char* customizeId
+    );
 
     /// <summary>
     /// 釋放資源，若有獲取檔案需釋放資源
@@ -88,9 +101,17 @@ extern "C" {
     /// <summary>
     /// 線上更新執行檔資訊
     /// </summary>
-    /// <param name="productSeries"></param>
-    /// <param name="applicableProjects"></param>
-    SOCKETCLIENT_API MainAppInfo* GetMainAppInfo(const char* productSeries, const char* applicableProjects);
+    /// <param name="productSeries">產品系列</param>
+    /// <param name="applicableProjects">適用專案</param>
+    /// <param name="customizeId">客製化ID</param>
+    SOCKETCLIENT_API MainAppInfo* GetMainAppInfo(const char* productSeries, const char* applicableProjects, const char* customizeId);
 
-    SOCKETCLIENT_API DefaultParametersInfo* GetDefaultParametersInfo(const char* productSeries, const char* applicableProjects);
+    /// <summary>
+    /// 線上更新參數資訊
+    /// </summary>
+    /// <param name="productSeries">產品系列</param>
+    /// <param name="applicableProjects">適用專案</param>
+    /// <param name="customizeId">客製化ID</param>
+    /// <returns></returns>
+    SOCKETCLIENT_API DefaultParametersInfo* GetDefaultParametersInfo(const char* productSeries, const char* applicableProjects, const char* customizeId);
 }

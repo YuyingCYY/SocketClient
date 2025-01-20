@@ -91,13 +91,19 @@ bool InitializeClient(
 	return true;
 }
 
-int SendData(const char* askId, const char* productSeries, const char* applicableProjects, bool isGetFile = false) {
+int SendData(
+	const char* askId,
+	const char* productSeries,
+	const char* applicableProjects,
+	const char* customizeId,
+	bool isGetFile = false
+) {
 	if (!isInitialized || ConnectSocket == INVALID_SOCKET) {
 		return -1;
 	}
 
 	std::time_t timestamp = getCurrentTimestamp();
-	json askContent = { {"productSeries", productSeries}, {"applicableProjects", applicableProjects} };
+	json askContent = { {"productSeries", productSeries}, {"applicableProjects", applicableProjects}, {"customizeId", customizeId} };
 	json data = {
 		{"timestamp", timestamp},
 		{"askId", askId},
@@ -115,14 +121,18 @@ int SendData(const char* askId, const char* productSeries, const char* applicabl
 	return iResult;
 }
 
-FileInfo* GetBinFileInfo(const char* askId, const char* productSeries, const char* applicableProjects)
-{
+FileInfo* GetBinFileInfo(
+	const char* askId,
+	const char* productSeries,
+	const char* applicableProjects,
+	const char* customizeId
+) {
 	if (!isInitialized || ConnectSocket == INVALID_SOCKET) {
 		return nullptr;
 	}
 
 	// 發送請求資訊
-	int sendResult = SendData(askId, productSeries, applicableProjects, true);
+	int sendResult = SendData(askId, productSeries, applicableProjects, customizeId, true);
 	if (sendResult <= 0) {
 		return nullptr;
 	}
@@ -183,14 +193,13 @@ void FreeFileInfo(FileInfo* fileInfo)
 	}
 }
 
-MainAppInfo* GetMainAppInfo(const char* productSeries, const char* applicableProjects)
-{
+MainAppInfo* GetMainAppInfo(const char* productSeries, const char* applicableProjects, const char* customizeId) {
 	if (!isInitialized || ConnectSocket == INVALID_SOCKET) {
 		return nullptr;
 	}
 
 	// 發送請求資訊
-	int sendResult = SendData("MainApp", productSeries, applicableProjects, false);
+	int sendResult = SendData("MainApp", productSeries, applicableProjects, customizeId, false);
 	if (sendResult <= 0) {
 		return nullptr;
 	}
@@ -226,14 +235,13 @@ MainAppInfo* GetMainAppInfo(const char* productSeries, const char* applicablePro
 	}
 }
 
-DefaultParametersInfo* GetDefaultParametersInfo(const char* productSeries, const char* applicableProjects)
-{
+DefaultParametersInfo* GetDefaultParametersInfo(const char* productSeries, const char* applicableProjects, const char* customizeId) {
 	if (!isInitialized || ConnectSocket == INVALID_SOCKET) {
 		return nullptr;
 	}
 
 	// 發送請求資訊
-	int sendResult = SendData("DefaultParameters", productSeries, applicableProjects, false);
+	int sendResult = SendData("DefaultParameters", productSeries, applicableProjects, customizeId, false);
 	if (sendResult <= 0) {
 		return nullptr;
 	}

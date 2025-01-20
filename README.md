@@ -15,6 +15,7 @@ struct FileInfo {
 ```
 
 成員：
+
 - data: 資料內容。
 - size: 檔案大小。
 - fileName: 檔案名稱。
@@ -23,7 +24,7 @@ struct FileInfo {
 
 ### 1. InitialzeClient
 
-初始化客戶端並連接至Server
+初始化客戶端並連接至 Server
 
 ```cpp
 SOCKETCLIENT_API bool InitializeClient(const char* stationType, const char* stationName,
@@ -31,15 +32,17 @@ SOCKETCLIENT_API bool InitializeClient(const char* stationType, const char* stat
 ```
 
 參數：
+
 - stationType: 本站類型
 - stationName: 本站名稱
 - stationId: 本站號碼
 - operatorId: 登入操作人員
 
 返回值：
-  true 表示連接成功，false 表示失敗。
+true 表示連接成功，false 表示失敗。
 
 範例：
+
 ```cpp
 #include "SocketClient.h"
 
@@ -71,18 +74,26 @@ SOCKETCLIENT_API void CloseConnection();
 ### 3. GetBinFileInfo
 
 ```cpp
-SOCKETCLIENT_API bool GetBinFileInfo(const char* askId, const char* productSeries, const char* applicableProjects);
+SOCKETCLIENT_API bool GetBinFileInfo(
+    const char* askId,
+    const char* productSeries,
+    const char* applicableProjects,
+    const char* customizeId
+);
 ```
 
 參數：
+
 - askId: 站點類型
 - productSeries: 產品系列
 - applicableProjects: 適用專案
+- customizeId: 客製化編號，若無給 "0"
 
 返回值：
-  FileInfo* 結構
+FileInfo\* 結構
 
 範例：
+
 ```cpp
 #include <fstream>
 #include <filesystem>
@@ -91,8 +102,9 @@ SOCKETCLIENT_API bool GetBinFileInfo(const char* askId, const char* productSerie
 const char* askId = "MainApp";
 const char* askId = "BMS";
 const char* applicableProjects = "Thai";
+const char* customizeId = "10000";
 
-FileInfo* fileInfo = GetBinFileInfo(askId, productSeries, applicableProjects);
+FileInfo* fileInfo = GetBinFileInfo(askId, productSeries, applicableProjects, customizeId);
 if (!fileInfo) {
     std::cerr << "Failed to get file info" << std::endl;
     CloseConnection();
@@ -129,9 +141,5 @@ SOCKETCLIENT_API void FreeFileInfo(FileInfo* fileInfo);
 ```
 
 參數：
-- fileInfo: FileInfo* 結構，獲取到的資源
 
-
-
-
-
+- fileInfo: FileInfo\* 結構，獲取到的資源

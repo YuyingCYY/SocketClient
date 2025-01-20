@@ -1,20 +1,24 @@
-﻿  SocketClient.cpp
-C:\Users\ewingchen\source\repos\Winsock Example\SocketClient\SocketClient\SocketClient.cpp(110,67): warning C4267: '引數': 將 'size_t' 轉換為 'int'，資料可能遺失
+﻿  pch.cpp
+  SocketClient.cpp
+C:\Users\ewingchen\source\repos\Winsock Example\SocketClient\SocketClient\SocketClient.cpp(116,67): warning C4267: '引數': 將 'size_t' 轉換為 'int'，資料可能遺失
   (編譯來源檔案 '/SocketClient.cpp')
   
-C:\Users\ewingchen\source\repos\Winsock Example\SocketClient\SocketClient\SocketClient.cpp(160,5): warning C4267: '引數': 將 'size_t' 轉換為 'int'，資料可能遺失
+C:\Users\ewingchen\source\repos\Winsock Example\SocketClient\SocketClient\SocketClient.cpp(170,5): warning C4267: '引數': 將 'size_t' 轉換為 'int'，資料可能遺失
   (編譯來源檔案 '/SocketClient.cpp')
   
-C:\Users\ewingchen\source\repos\Winsock Example\SocketClient\SocketClient\SocketClient.cpp(173,32): warning C4101: 'e': 未參考的區域變數
+C:\Users\ewingchen\source\repos\Winsock Example\SocketClient\SocketClient\SocketClient.cpp(183,32): warning C4101: 'e': 未參考的區域變數
   (編譯來源檔案 '/SocketClient.cpp')
   
-C:\Users\ewingchen\source\repos\Winsock Example\SocketClient\SocketClient\SocketClient.cpp(224,32): warning C4101: 'e': 未參考的區域變數
+C:\Users\ewingchen\source\repos\Winsock Example\SocketClient\SocketClient\SocketClient.cpp(233,32): warning C4101: 'e': 未參考的區域變數
   (編譯來源檔案 '/SocketClient.cpp')
   
-C:\Users\ewingchen\source\repos\Winsock Example\SocketClient\SocketClient\SocketClient.cpp(273,32): warning C4101: 'e': 未參考的區域變數
+C:\Users\ewingchen\source\repos\Winsock Example\SocketClient\SocketClient\SocketClient.cpp(281,32): warning C4101: 'e': 未參考的區域變數
   (編譯來源檔案 '/SocketClient.cpp')
   
-C:\Users\ewingchen\source\repos\Winsock Example\SocketClient\SocketClient\SocketClient.cpp(297,54): warning C4267: '引數': 將 'size_t' 轉換為 'int'，資料可能遺失
+C:\Users\ewingchen\source\repos\Winsock Example\SocketClient\SocketClient\SocketClient.cpp(305,54): warning C4267: '引數': 將 'size_t' 轉換為 'int'，資料可能遺失
   (編譯來源檔案 '/SocketClient.cpp')
   
+  dllmain.cpp
+  正在產生程式碼...
+     正在建立程式庫 C:\Users\ewingchen\source\repos\Winsock Example\SocketClient\x64\Debug\SocketClient.lib 和物件 C:\Users\ewingchen\source\repos\Winsock Example\SocketClient\x64\Debug\SocketClient.exp
   SocketClient.vcxproj -> C:\Users\ewingchen\source\repos\Winsock Example\SocketClient\x64\Debug\SocketClient.dll
