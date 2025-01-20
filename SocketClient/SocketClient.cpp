@@ -10,6 +10,7 @@
 #include <chrono>
 #include <string>
 #include <fstream>
+#include <thread>
 #include "json.hpp"
 
 #pragma comment(lib, "Ws2_32.lib")
@@ -24,6 +25,13 @@ using json = nlohmann::json;
 
 SOCKET ConnectSocket = INVALID_SOCKET;
 bool isInitialized = false;
+
+static std::time_t getCurrentTimestamp()
+{
+	auto now = std::chrono::system_clock::now();
+	std::chrono::system_clock::time_point time_point = now;
+	return std::chrono::system_clock::to_time_t(time_point);
+}
 
 bool InitializeClient(
 	const char* stationType, 
@@ -88,11 +96,7 @@ int SendData(const char* askId, const char* productSeries, const char* applicabl
 		return -1;
 	}
 
-	// 獲取當前時間戳
-	auto now = std::chrono::system_clock::now();
-	std::chrono::system_clock::time_point time_point = now;
-	std::time_t timestamp = std::chrono::system_clock::to_time_t(time_point);
-
+	std::time_t timestamp = getCurrentTimestamp();
 	json askContent = { {"productSeries", productSeries}, {"applicableProjects", applicableProjects} };
 	json data = {
 		{"timestamp", timestamp},
@@ -111,9 +115,15 @@ int SendData(const char* askId, const char* productSeries, const char* applicabl
 	return iResult;
 }
 
-FileInfo* ReceiveFileInfo()
+FileInfo* GetBinFileInfo(const char* askId, const char* productSeries, const char* applicableProjects)
 {
 	if (!isInitialized || ConnectSocket == INVALID_SOCKET) {
+		return nullptr;
+	}
+
+	// 發送請求資訊
+	int sendResult = SendData(askId, productSeries, applicableProjects, true);
+	if (sendResult <= 0) {
 		return nullptr;
 	}
 
@@ -173,25 +183,96 @@ void FreeFileInfo(FileInfo* fileInfo)
 	}
 }
 
-FileInfo* GetBinFileInfo(const char* askId, const char* productSeries, const char* applicableProjects)
+MainAppInfo* GetMainAppInfo(const char* productSeries, const char* applicableProjects)
 {
 	if (!isInitialized || ConnectSocket == INVALID_SOCKET) {
 		return nullptr;
 	}
 
 	// 發送請求資訊
-	int sendResult = SendData(askId, productSeries, applicableProjects, true);
+	int sendResult = SendData("MainApp", productSeries, applicableProjects, false);
 	if (sendResult <= 0) {
 		return nullptr;
 	}
 
-	// 接收檔案資訊
-	FileInfo* fileInfo = ReceiveFileInfo();
-	if (fileInfo == nullptr) {
+	// 先接收 JSON header
+	char headerBuffer[4096];
+	int headerResult = recv(ConnectSocket, headerBuffer, 4096, 0);
+	if (headerResult <= 0) {
+		return nullptr;
+	}
+	headerBuffer[headerResult] = '\0';
+
+	try {
+		// 解析 JSON header
+		auto headerJson = json::parse(headerBuffer);
+		if (headerJson["status"] == "error") {
+			return nullptr;
+		}
+
+		std::string version = headerJson["Version"];
+		std::string blVersion = headerJson["BLVersion"];
+		int calibrationOffset = headerJson["CalibrationOffset"];
+
+		MainAppInfo* mainAppInfo = new MainAppInfo();
+		strncpy_s(mainAppInfo->version, version.c_str(), sizeof(mainAppInfo->version) - 1);
+		strncpy_s(mainAppInfo->blVersion, blVersion.c_str(), sizeof(mainAppInfo->blVersion) - 1);
+		mainAppInfo->calibrationOffset = calibrationOffset;
+
+		return mainAppInfo;
+	}
+	catch (const json::exception& e) {
+		return nullptr;
+	}
+}
+
+DefaultParametersInfo* GetDefaultParametersInfo(const char* productSeries, const char* applicableProjects)
+{
+	if (!isInitialized || ConnectSocket == INVALID_SOCKET) {
 		return nullptr;
 	}
 
-	return fileInfo;
+	// 發送請求資訊
+	int sendResult = SendData("DefaultParameters", productSeries, applicableProjects, false);
+	if (sendResult <= 0) {
+		return nullptr;
+	}
+
+	// 先接收 JSON header
+	char headerBuffer[4096];
+	int headerResult = recv(ConnectSocket, headerBuffer, 4096, 0);
+	if (headerResult <= 0) {
+		return nullptr;
+	}
+	headerBuffer[headerResult] = '\0';
+
+	try {
+		// 解析 JSON header
+		auto headerJson = json::parse(headerBuffer);
+		if (headerJson["status"] == "error") {
+			return nullptr;
+		}
+
+		std::string version = headerJson["Version"];
+		std::string blVersion = headerJson["BLVersion"];
+
+		DefaultParametersInfo* defaultParaInfo = new DefaultParametersInfo();
+		strncpy_s(defaultParaInfo->version, version.c_str(), sizeof(defaultParaInfo->version) - 1);
+		strncpy_s(defaultParaInfo->blVersion, blVersion.c_str(), sizeof(defaultParaInfo->blVersion) - 1);
+		defaultParaInfo->calibrationOffset = headerJson["CalibrationOffset"];
+		
+		defaultParaInfo->shieldedZoneCount = headerJson["ShieldedZoneCount"];
+		auto& zones = headerJson["ShieldedZone"];
+		for (int i = 0; i < defaultParaInfo->shieldedZoneCount && i < 50; i++) {
+			defaultParaInfo->shieldedZone[i].start = zones[i]["start"];
+			defaultParaInfo->shieldedZone[i].end = zones[i]["end"];
+		}
+
+		return defaultParaInfo;
+	}
+	catch (const json::exception& e) {
+		return nullptr;
+	}
 }
 
 int ReceiveData(char* buffer, int bufferSize) {
@@ -209,6 +290,15 @@ int ReceiveData(char* buffer, int bufferSize) {
 
 void CloseConnection() {
 	if (ConnectSocket != INVALID_SOCKET) {
+		// 發送斷開連接請求
+		json disconnectRequest;
+		disconnectRequest["command"] = "disconnect";
+		std::string jsonStr = disconnectRequest.dump();
+		send(ConnectSocket, jsonStr.c_str(), jsonStr.length(), 0);
+
+		// 等待一小段時間，確保服務器收到請求
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
 		shutdown(ConnectSocket, SD_SEND);
 		closesocket(ConnectSocket);
 		ConnectSocket = INVALID_SOCKET;

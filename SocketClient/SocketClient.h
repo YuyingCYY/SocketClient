@@ -17,6 +17,27 @@ extern "C" {
         char fileName[256];
     };
 
+    struct MainAppInfo {
+        char version[256];
+        char blVersion[256];
+        int calibrationOffset;
+        //bool IsSuccess;
+    };
+
+    struct ShieldedZoneInfo {
+        int start;
+        int end;
+    };
+
+    struct DefaultParametersInfo
+    {
+        char version[256];
+        char blVersion[256];
+        int calibrationOffset;
+        int shieldedZoneCount;
+        ShieldedZoneInfo shieldedZone[50];
+    };
+
     /// <summary>
     /// 初始化客戶端
     /// </summary>
@@ -50,10 +71,13 @@ extern "C" {
     SOCKETCLIENT_API int SendData(const char* askId, const char* productSeries, const char* applicableProjects, bool isGetFile);
 
     /// <summary>
-    /// 接收檔案內容
+    /// 獲取.bin檔案資訊
     /// </summary>
+    /// <param name="askId">站點類型</param>
+    /// <param name="productSeries">產品系列</param>
+    /// <param name="applicableProjects">適用專案</param>
     /// <returns>檔案資訊</returns>
-    SOCKETCLIENT_API FileInfo* ReceiveFileInfo();
+    SOCKETCLIENT_API FileInfo* GetBinFileInfo(const char* askId, const char* productSeries, const char* applicableProjects);
 
     /// <summary>
     /// 釋放資源，若有獲取檔案需釋放資源
@@ -62,11 +86,11 @@ extern "C" {
     SOCKETCLIENT_API void FreeFileInfo(FileInfo* fileInfo);
 
     /// <summary>
-    /// 獲取.bin檔案資訊
+    /// 線上更新執行檔資訊
     /// </summary>
-    /// <param name="askId">站點類型</param>
-    /// <param name="productSeries">產品系列</param>
-    /// <param name="applicableProjects">適用專案</param>
-    /// <returns>檔案資訊</returns>
-    SOCKETCLIENT_API FileInfo* GetBinFileInfo(const char* askId, const char* productSeries, const char* applicableProjects);
+    /// <param name="productSeries"></param>
+    /// <param name="applicableProjects"></param>
+    SOCKETCLIENT_API MainAppInfo* GetMainAppInfo(const char* productSeries, const char* applicableProjects);
+
+    SOCKETCLIENT_API DefaultParametersInfo* GetDefaultParametersInfo(const char* productSeries, const char* applicableProjects);
 }
