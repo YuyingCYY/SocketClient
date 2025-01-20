@@ -19,6 +19,8 @@ struct FileInfo {
 - size: 檔案大小。
 - fileName: 檔案名稱。
 
+## 介面函式庫說明
+
 ### 1. InitialzeClient
 
 初始化客戶端並連接至Server
