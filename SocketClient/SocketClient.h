@@ -59,7 +59,7 @@ extern "C" {
     /// <summary>
     /// 關閉連接
     /// </summary>
-    SOCKETCLIENT_API void CloseConnection();
+    SOCKETCLIENT_API bool CloseConnection();
 
     /// <summary>
     /// 傳送資料
