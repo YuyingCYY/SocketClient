@@ -24,7 +24,7 @@ extern "C" {
         //bool IsSuccess;
     };
 
-    struct ShieldedZoneInfo {
+    struct ShieldedZone {
         int start;
         int end;
     };
@@ -35,7 +35,7 @@ extern "C" {
         char blVersion[256];
         int calibrationOffset;
         int shieldedZoneCount;
-        ShieldedZoneInfo shieldedZone[50];
+        ShieldedZone shieldedZone[50];
     };
 
     /// <summary>

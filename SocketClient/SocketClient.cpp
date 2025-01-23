@@ -12,6 +12,9 @@
 #include <fstream>
 #include <thread>
 #include <mutex>
+#include <filesystem>
+#include <iomanip>
+#include <sstream>
 #include "json.hpp"
 
 using json = nlohmann::json;
@@ -33,20 +36,34 @@ public:
 		std::lock_guard<std::mutex> lock(logMutex);
 		std::ofstream logFile(LOG_FILE_PATH, std::ios::app);
 
-		if (logFile.is_open()) {
-			// Check file size
-			logFile.seekp(0, std::ios::end);
-			if (logFile.tellp() > MAX_LOG_SIZE) {
-				logFile.close();
-				// Rename old log file
-				std::string backupPath = LOG_FILE_PATH + std::string(".old");
-				remove(backupPath.c_str());
-				rename(LOG_FILE_PATH, backupPath.c_str());
-				logFile.open(LOG_FILE_PATH);
-			}
+		try {
+			std::string logPath = getLogFilePath();
+			std::ofstream logFile(logPath, std::ios::app);
 
-			logFile << "[" << getTimestamp() << "][" << level << "] " << message << std::endl;
-			logFile.close();
+			if (logFile.is_open()) {
+				// 檢查檔案大小，如果超過 10MB 則重新命名
+				logFile.seekp(0, std::ios::end);
+				if (logFile.tellp() > (10 * 1024 * 1024)) {
+					logFile.close();
+					std::string backupPath = logPath + ".old";
+
+					// 刪除舊備份檔案
+					std::filesystem::remove(backupPath);
+
+					// 重新命名當前檔案
+					std::filesystem::rename(logPath, backupPath);
+
+					// 重新開啟檔案
+					logFile.open(logPath);
+				}
+
+				logFile << "[" << getTimestamp() << "][" << level << "] " << message << std::endl;
+				logFile.close();
+			}
+		}
+		catch (const std::exception& e) {
+			// 如果發生任何錯誤，可以考慮輸出到系統錯誤或其他備用位置
+			OutputDebugStringA(("Logger Error: " + std::string(e.what()) + "\n").c_str());
 		}
 	}
 
@@ -64,14 +81,49 @@ public:
 
 private:
 	static std::mutex logMutex;
+
+	static std::string getCurrentDate() {
+		auto now = std::chrono::system_clock::now();
+		auto time = std::chrono::system_clock::to_time_t(now);
+		struct tm timeinfo;
+		localtime_s(&timeinfo, &time);
+		
+		std::ostringstream oss;
+		oss << std::put_time(&timeinfo, "%Y%m%d");
+		return oss.str();
+	}
+
+	static std::string getLogDirectory() {
+		std::filesystem::path logDir = "logs";
+
+		// 確保 logs 資料夾存在
+		if (!std::filesystem::exists(logDir)) {
+			try {
+				std::filesystem::create_directories(logDir);
+			}
+			catch (const std::filesystem::filesystem_error& e) {
+				// 如果無法創建資料夾，可能需要回退到當前目錄
+				return "log";
+			}
+		}
+		return logDir.string();
+	}
+
 	static std::string getTimestamp() {
 		auto now = std::chrono::system_clock::now();
 		auto time = std::chrono::system_clock::to_time_t(now);
 		struct tm timeinfo;
 		localtime_s(&timeinfo, &time);
-		char buffer[80];
-		strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", &timeinfo);
-		return std::string(buffer);
+
+		std::ostringstream oss;
+		oss << std::put_time(&timeinfo, "%Y-%m-%d %H:%M:%S");
+		return oss.str();
+	}
+
+	static std::string getLogFilePath() {
+		std::string logDir = getLogDirectory();
+		std::string currentDate = getCurrentDate();
+		return logDir + "/" + currentDate + "-socket_client.log";
 	}
 };
 
@@ -229,6 +281,8 @@ FileInfo* GetBinFileInfo(
 		// 解析 JSON header
 		auto headerJson = json::parse(headerBuffer);
 		if (headerJson["status"] == "error") {
+			std::string message = headerJson["message"];
+			Logger::error(message);
 			return nullptr;
 		}
 
@@ -313,7 +367,8 @@ MainAppInfo* GetMainAppInfo(const char* productSeries, const char* applicablePro
 		// 解析 JSON header
 		auto headerJson = json::parse(headerBuffer);
 		if (headerJson["status"] == "error") {
-			Logger::error("Server returned error status in header");
+			std::string message = headerJson["message"];
+			Logger::error(message);
 			return nullptr;
 		}
 
@@ -368,7 +423,8 @@ DefaultParametersInfo* GetDefaultParametersInfo(const char* productSeries, const
 		// 解析 JSON header
 		auto headerJson = json::parse(headerBuffer);
 		if (headerJson["status"] == "error") {
-			Logger::error("Server returned error status in header");
+			std::string message = headerJson["message"];
+			Logger::error(message);
 			return nullptr;
 		}
 
